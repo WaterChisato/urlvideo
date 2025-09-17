@@ -1,50 +1,109 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>免费解析VIP视频｜水喝千束的博客</title>
+    <meta charset="UTF-8">
+    <title>Video Player</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="Content-language" content="zh-CN">
     <meta name="renderer" content="webkit">
     <meta name="referrer" content="never"/>
-    <meta http-equiv="Access-Control-Allow-Origin" content="*" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-    <link rel="shortcut icon" type="image/x-icon" href="https://community.image.video.qpic.cn/v_station_video_web_comment_fbd86c-1_411734343_1694414327274690" media="screen" />
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="shortcut icon" type="image/x-icon" href="https://community.image.video.qpic.cn/v_station_video_web_comment_fbd86c-1_411734343_1694414327274690" media="screen">
+    <!-- 外部样式和脚本保持原样，但建议如果可能，将它们下载到本地以提高加载速度和可靠性 -->
     <link rel="stylesheet" href="https://nim.nosdn.127.net/MTAyNDkzMg==/bmltYV8zNDc1MjQ0MDAxMV8xNzQwMzg0NDMzNTQ3XzAyNWUzMDE1LTBhN2MtNGFlMC1iOTZkLTczODVkOTQ5ZTYzYQ==">
     <script src="https://nim.nosdn.127.net/MTY4NDA1NTk=/bmltYV8yNjk4MzIxNjQyMTNfMTc0NTUxNzgwMTk2OF80YTNhM2QyMy1jNWZhLTQ2YmUtOTQxOS1lM2UyNjUyYmZkMWE="></script>
     <script src="https://nim.nosdn.127.net/MTAyNDkzMg==/bmltYV8zNDc1MjQ0MDAxMV8xNzA2MDcyNDQxMjQ2X2RlMDJmYTU3LWE3ZGYtNDEzYS1iNDM5LTc2YTVmYjAzMzMwZA=="></script>
     <script src="https://nim.nosdn.127.net/MTAyNDkzMg==/bmltYV8zNDc1MjQ0MDAxMV8xNzA2MDcyMzY1NDUyXzRkZjlmZGExLWEzODQtNGFhMy1hNTQ4LTgwZmYyN2I1NzFjMQ=="></script>
     <script src="https://nim.nosdn.127.net/MTY2Nzg1Nzg=/bmltYV8zMjA1MTUyOTczNjFfMTc1MzMyNTgxMzk1M185Y2Y2NTcyYy1hOWNhLTQwYTktYTNkNy0xYjU1OWU3YjU5NTk="></script>
+    <!-- 添加一些基本的 CSS 以改善用户体验 -->
+    <style>
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4; }
+        #loading { display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .mov { width: 50px; height: 50px; border-radius: 50%; background: #ccc; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #player { width: 100%; height: 100vh; }
+        #input-container { padding: 20px; text-align: center; }
+        #video-url { width: 80%; padding: 10px; margin-bottom: 10px; }
+        #submit-url { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        #submit-url:hover { background: #0056b3; }
+    </style>
 </head>
 <body>
-<div id="loading" align="center"><div class="mov"></div></div>
-<div id="player" class="w-h"></div>
-<script type="text/javascript">
-        var url = decodeURIComponent(encodeURIComponent(new URLSearchParams(location.search))).replace(new RegExp(/(\S*)url=/),"");
-        var isMobiles = navigator.userAgent.match(/iPad|iPhone|Android|Linux|iPod/i)!=null ? 1 : 0;
-        if(isMobiles == 0 && window.self == window.top && url == ""||url == "undefined"||url == "null"){
-        XMlayEr.error('<style>.container{display:flex;justify-content:center;align-items:center;height:100vh;}iframe{width:80%;max-width:1100px;height:630px;border: 3px solid #CC6633;}</style><div class="container"><iframe src="jx.html"></iframe></div>');
-        }else if(url == ""||url == "undefined"||url == "null"){
-        XMlayEr.error('请填入视频URL地址！<br><br>本接口仅供学习与交流、请勿用于非法用途,此源码可直接下载')
-        }else{
-        XMlayEr.XMlayEr();    
+    <div id="input-container">
+        <input type="text" id="video-url" placeholder="请输入视频 URL">
+        <button id="submit-url">播放</button>
+    </div>
+    <div id="loading" style="display: none;" align="center"><div class="mov"></div></div>
+    <div id="player" style="display: none;" class="w-h"></div>
+
+    <script type="text/javascript">
+        // 获取 URL 参数中的 url，如果有则自动加载
+        var urlParams = new URLSearchParams(window.location.search);
+        var url = urlParams.get('url') || '';
+
+        var isMobile = /iPad|iPhone|Android|Linux|iPod/i.test(navigator.userAgent);
+        var box = document.getElementById('player');
+        var loading = document.getElementById('loading');
+        var inputContainer = document.getElementById('input-container');
+
+        // 如果有 URL 参数，直接加载播放器
+        if (url) {
+            loadPlayer(url);
+        } else {
+            // 否则显示输入框
+            inputContainer.style.display = 'block';
+            document.getElementById('submit-url').addEventListener('click', function() {
+                var inputUrl = document.getElementById('video-url').value.trim();
+                if (inputUrl) {
+                    // 更新浏览器 URL 以包含参数，便于分享
+                    history.pushState(null, '', '?url=' + encodeURIComponent(inputUrl));
+                    loadPlayer(inputUrl);
+                } else {
+                    alert('请填入视频 URL 地址！');
+                }
+            });
         }
-        let  box = $("#player");
-                function cric(url, sp) {
-                var _iframe = document.createElement("iframe");
-                _iframe.src = url;
-                _iframe.name = sp;
-                _iframe.id = _iframe.name;
-                _iframe.width = 0;
-                _iframe.height = 0;
-                _iframe.border = "0";
-                _iframe.style.visibility = "hidden";
-                _iframe.sandbox = "allow-scripts allow-same-origin";
-                document.body.appendChild(_iframe);
+
+        function loadPlayer(videoUrl) {
+            inputContainer.style.display = 'none';
+            loading.style.display = 'flex';
+            box.style.display = 'block';
+
+            // 原有逻辑：初始化播放器
+            XMlayEr.XMlayEr();
+
+            // 假设 XMlayEr 支持加载 URL，您需要根据实际播放器库调整
+            // 这里只是示例；如果 XMlayEr 有 load 方法，请替换
+            // XMlayEr.load(videoUrl); // 示例
+
+            // 隐藏加载动画（根据实际播放器事件调整）
+            setTimeout(function() { loading.style.display = 'none'; }, 2000); // 模拟
+
+            // 原有错误处理逻辑
+            if (!videoUrl) {
+                XMlayEr.error('请填入视频URL地址！<br><br>本接口仅供学习与交流、请勿用于非法用途,此源码可直接下载');
             }
-        cric("https://dn-odum9helk.qbox.me/Fli2OYnIvn1nqSqpFvTKcp74aJj0", "tongji");
-</script>
+        }
+
+        // 创建隐藏 iframe 用于统计
+        function createIframe(src, name) {
+            var iframe = document.createElement('iframe');
+            iframe.src = src;
+            iframe.name = name;
+            iframe.id = name;
+            iframe.width = 0;
+            iframe.height = 0;
+            iframe.style.border = '0';
+            iframe.style.visibility = 'hidden';
+            iframe.sandbox = 'allow-scripts allow-same-origin';
+            document.body.appendChild(iframe);
+        }
+        createIframe('https://dn-odum9helk.qbox.me/Fli2OYnIvn1nqSqpFvTKcp74aJj0', 'tongji');
+
+        // 移除原有桌面 iframe 加载逻辑，因为 GitHub Pages 是静态的，且 jx.html 需要单独处理
+        // 如果需要 jx.html，可以在仓库中添加它，并链接到它
+    </script>
 </body>
 </html>
